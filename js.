@@ -1,0 +1,359 @@
+// ================================
+// CART SYSTEM
+// ================================
+
+let cart = JSON.parse(localStorage.getItem("karanshop_cart")) || [];
+
+function saveCart() {
+    localStorage.setItem("karanshop_cart", JSON.stringify(cart));
+    updateCartCount();
+}
+
+function addToCart(name, price) {
+
+    const existing = cart.find(item => item.name === name);
+
+    if (existing) {
+        existing.quantity++;
+    } else {
+        cart.push({
+            name: name,
+            price: price,
+            quantity: 1
+        });
+    }
+
+    saveCart();
+
+    alert(name + " added to cart!");
+}
+
+function updateCartCount() {
+
+    const count = cart.reduce(
+        (total, item) => total + item.quantity,
+        0
+    );
+
+    const elements = document.querySelectorAll("#cart-count");
+
+    elements.forEach(element => {
+        element.textContent = count;
+    });
+}
+
+// ================================
+// DISPLAY CART
+// ================================
+
+function displayCart() {
+
+    const container = document.getElementById("cart-items");
+
+    if (!container) return;
+
+    if (cart.length === 0) {
+
+        container.innerHTML = `
+            <div class="cart-summary">
+                <h2>Your cart is empty 🛒</h2>
+                <p>Start shopping and add products to your cart.</p>
+                <br>
+                <a href="products.html" class="btn">
+                    Continue Shopping
+                </a>
+            </div>
+        `;
+
+        updateTotal();
+        return;
+    }
+
+    container.innerHTML = "";
+
+    cart.forEach((item, index) => {
+
+        container.innerHTML += `
+            <div class="cart-item">
+
+                <div>
+                    <h3>${item.name}</h3>
+                    <p>₹${item.price.toLocaleString()}</p>
+                    <p>Quantity: ${item.quantity}</p>
+                </div>
+
+                <div>
+                    <strong>
+                        ₹${(item.price * item.quantity).toLocaleString()}
+                    </strong>
+
+                    <br><br>
+
+                    <button onclick="removeFromCart(${index})">
+                        Remove
+                    </button>
+                </div>
+
+            </div>
+        `;
+    });
+
+    updateTotal();
+}
+
+function removeFromCart(index) {
+
+    cart.splice(index, 1);
+
+    saveCart();
+
+    displayCart();
+}
+
+function updateTotal() {
+
+    const total = cart.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+    );
+
+    const subtotal = document.getElementById("subtotal");
+    const totalElement = document.getElementById("total");
+
+    if (subtotal) {
+        subtotal.textContent = "₹" + total.toLocaleString();
+    }
+
+    if (totalElement) {
+        totalElement.textContent = "₹" + total.toLocaleString();
+    }
+}
+
+// ================================
+// CHECKOUT
+// ================================
+
+function displayCheckout() {
+
+    const container = document.getElementById("checkout-items");
+
+    if (!container) return;
+
+    let total = 0;
+
+    container.innerHTML = "";
+
+    cart.forEach(item => {
+
+        const itemTotal = item.price * item.quantity;
+
+        total += itemTotal;
+
+        container.innerHTML += `
+            <div class="summary-row">
+                <span>
+                    ${item.name} × ${item.quantity}
+                </span>
+
+                <strong>
+                    ₹${itemTotal.toLocaleString()}
+                </strong>
+            </div>
+        `;
+    });
+
+    const totalElement =
+        document.getElementById("checkout-total");
+
+    if (totalElement) {
+        totalElement.textContent =
+            "₹" + total.toLocaleString();
+    }
+}
+
+function placeOrder(event) {
+
+    event.preventDefault();
+
+    if (cart.length === 0) {
+        alert("Your cart is empty!");
+        return;
+    }
+
+    alert(
+        "🎉 Order placed successfully!\n\n" +
+        "Thank you for shopping with KaranShop."
+    );
+
+    cart = [];
+
+    saveCart();
+
+    window.location.href = "index.html";
+}
+
+// ================================
+// SEARCH
+// ================================
+
+function searchProducts() {
+
+    const search =
+        document.getElementById("search").value.toLowerCase();
+
+    const products =
+        document.querySelectorAll(".product-card");
+
+    products.forEach(product => {
+
+        const text = product.textContent.toLowerCase();
+
+        product.style.display =
+            text.includes(search) ? "block" : "none";
+    });
+}
+
+// ================================
+// CATEGORY FILTER
+// ================================
+
+function filterProducts() {
+
+    const category =
+        document.getElementById("categoryFilter").value;
+
+    const products =
+        document.querySelectorAll(".product-card");
+
+    products.forEach(product => {
+
+        const productCategory =
+            product.dataset.category;
+
+        if (
+            category === "all" ||
+            productCategory === category
+        ) {
+            product.style.display = "block";
+        } else {
+            product.style.display = "none";
+        }
+    });
+}
+
+// ================================
+// MOBILE MENU
+// ================================
+
+function toggleMenu() {
+
+    const nav =
+        document.querySelector(".navbar nav");
+
+    if (nav) {
+        nav.classList.toggle("show");
+    }
+}
+
+// ================================
+// REGISTER
+// ================================
+
+function registerUser(event) {
+
+    event.preventDefault();
+
+    const name =
+        document.getElementById("registerName").value;
+
+    const email =
+        document.getElementById("registerEmail").value;
+
+    const password =
+        document.getElementById("registerPassword").value;
+
+    const confirmPassword =
+        document.getElementById("confirmPassword").value;
+
+    if (password !== confirmPassword) {
+
+        alert("Passwords do not match!");
+
+        return;
+    }
+
+    const user = {
+        name: name,
+        email: email,
+        password: password
+    };
+
+    localStorage.setItem(
+        "karanshop_user",
+        JSON.stringify(user)
+    );
+
+    alert("Account created successfully!");
+
+    window.location.href = "login.html";
+}
+
+// ================================
+// LOGIN
+// ================================
+
+function loginUser(event) {
+
+    event.preventDefault();
+
+    const email =
+        document.getElementById("loginEmail").value;
+
+    const password =
+        document.getElementById("loginPassword").value;
+
+    const user =
+        JSON.parse(
+            localStorage.getItem("karanshop_user")
+        );
+
+    if (!user) {
+
+        alert("No account found. Please register first.");
+
+        return;
+    }
+
+    if (
+        email === user.email &&
+        password === user.password
+    ) {
+
+        alert("Login successful! Welcome " + user.name);
+
+        localStorage.setItem(
+            "karanshop_logged_in",
+            "true"
+        );
+
+        window.location.href = "index.html";
+
+    } else {
+
+        alert("Invalid email or password.");
+    }
+}
+
+// ================================
+// PAGE INITIALIZATION
+// ================================
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    updateCartCount();
+
+    displayCart();
+
+    displayCheckout();
+
+});
